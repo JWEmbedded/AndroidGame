@@ -17,10 +17,39 @@
             overflow: hidden;
             touch-action: none;
         }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
         .wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-top: -40px;
+        }
+        .credit {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: transparent;
+            background: linear-gradient(90deg, #444 0%, #aaa 40%, #fff 50%, #aaa 60%, #444 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 4s linear infinite;
+            opacity: 0.75;
+            pointer-events: none;
+        }
+        @keyframes shine {
+            0%   { background-position: 200% center; }
+            100% { background-position: -200% center; }
         }
         .stats { font-size: 28px; margin-bottom: 10px; font-weight: bold; }
 
@@ -85,6 +114,7 @@
     </style>
 </head>
 <body>
+    <div class="credit" id="credit">Created by Jeongwoo Yeom</div>
     <div class="wrapper">
         <div class="stats">Score: <span id="score">0</span></div>
 
@@ -214,7 +244,7 @@
                 ++y;
                 player.score += 10;
             }
-            if (player.score >= 1000) {
+            if (player.score >= 600) {
                 gameComplete = true;
                 completeOverlay.classList.add('visible');
             }
@@ -413,6 +443,18 @@
         playerReset();
         updateScore();
         animFrameId = requestAnimationFrame(update);
+
+        // credit을 화면 상단과 Score 사이 중간에 배치
+        function positionCredit() {
+            const scoreEl = document.querySelector('.stats');
+            const creditEl = document.getElementById('credit');
+            const scoreTop = scoreEl.getBoundingClientRect().top;
+            const creditH = creditEl.getBoundingClientRect().height;
+            const mid = scoreTop * 0.7 - creditH / 2;
+            creditEl.style.top = Math.max(8, mid) + 'px';
+        }
+        positionCredit();
+        window.addEventListener('resize', positionCredit);
     </script>
 </body>
 </html>
