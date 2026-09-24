@@ -57,15 +57,15 @@ public final class SpiderView extends View {
  }
  private void tell(String msg){message=msg;messageUntil=android.os.SystemClock.uptimeMillis()+4000;invalidate();}
  private void save(){prefs.edit().putString("board",game.encode()).putLong("elapsed",elapsed).apply();}
- private boolean moveWithSound(int col,int card,int dest){int before=game.completed;if(!game.move(col,card,dest))return false;if(sounds!=null){sounds.place();if(game.completed>before)sounds.complete();}return true;}
- private boolean dealWithSound(){int before=game.completed;if(!game.deal())return false;if(sounds!=null){sounds.place();if(game.completed>before)sounds.complete();}return true;}
+ private boolean moveWithSound(int col,int card,int dest){int before=game.completed;if(!game.move(col,card,dest))return false;if(sounds!=null&&game.completed>before)sounds.complete();return true;}
+ private boolean dealWithSound(){int before=game.completed;if(!game.deal())return false;if(sounds!=null&&game.completed>before)sounds.complete();return true;}
  private void clearSelection(){selected=-1;index=-1;dragging=false;hintDest=-1;}
  private int columnAt(float xx){int col=(int)((xx-8)/(cw+12));return xx<8||col>=10?-1:col;}
  private int cardAt(int col,float yy){if(col<0||yy<57)return -1;int n=game.columns.get(col).size();if(n==0||yy>57+(n-1)*step(col)+ch)return -1;return Math.min(n-1,(int)((yy-57)/step(col)));}
  @Override public boolean onTouchEvent(MotionEvent e){
   float xx=(e.getX()-ox)/scale,yy=(e.getY()-oy)/scale;
   if(e.getActionMasked()==MotionEvent.ACTION_DOWN){downX=xx;downY=yy;return true;}
-  if(e.getActionMasked()==MotionEvent.ACTION_MOVE&&!paused&&game.completed<8){if(!dragging&&Math.hypot(xx-downX,yy-downY)>10&&downY<h-100){int col=columnAt(downX),i=cardAt(col,downY);if(game.movable(col,i)){selected=col;index=i;dragging=true;hintDest=-1;if(sounds!=null)sounds.pickUp();}}dragX=xx;dragY=yy;invalidate();return true;}
+  if(e.getActionMasked()==MotionEvent.ACTION_MOVE&&!paused&&game.completed<8){if(!dragging&&Math.hypot(xx-downX,yy-downY)>10&&downY<h-100){int col=columnAt(downX),i=cardAt(col,downY);if(game.movable(col,i)){selected=col;index=i;dragging=true;hintDest=-1;}}dragX=xx;dragY=yy;invalidate();return true;}
   if(e.getActionMasked()==MotionEvent.ACTION_CANCEL){dragging=false;invalidate();return true;}
   if(e.getActionMasked()!=MotionEvent.ACTION_UP)return true;performClick();
   if(paused||game.completed==8){if(xx>w/2-110&&xx<w/2+110&&yy>h/2+20&&yy<h/2+72){if(game.completed==8)newGame();else{paused=false;last=0;}}invalidate();return true;}
@@ -76,7 +76,7 @@ public final class SpiderView extends View {
    else if(xx>w/2-185&&xx<w/2-35){if(game.undo()){clearSelection();save();}else tell("되돌릴 이동이 없습니다");}
    else if(xx>w/2-20&&xx<w/2+85){int[] hint=game.hint();if(hint!=null){selected=hint[0];index=hint[1];hintDest=hint[2];tell((hint[0]+1)+"열의 선택 카드를 "+(hint[2]+1)+"열로 옮기세요");}else tell(game.canDeal()?"추가 카드를 배분해 보세요":"가능한 이동이 없습니다. 되돌리기를 사용하세요");}
    else if(xx>w/2+100&&xx<w/2+205){paused=true;new AlertDialog.Builder(getContext()).setTitle("새 게임을 시작할까요?").setMessage("현재 판은 새 판으로 바뀝니다.").setPositiveButton("새 게임",(d,v)->newGame()).setNegativeButton("계속하기",(d,v)->{paused=false;last=0;invalidate();}).setOnCancelListener(d->{paused=false;last=0;invalidate();}).show();}
-  }else{int col=columnAt(xx),i=cardAt(col,yy);if(selected>=0&&col!=selected&&yy>=57&&moveWithSound(selected,index,col)){clearSelection();save();}else if(game.movable(col,i)){selected=col;index=i;hintDest=-1;if(sounds!=null)sounds.pickUp();}else{clearSelection();tell("앞면의 연속된 내림차순 카드만 옮길 수 있어요");}}
+  }else{int col=columnAt(xx),i=cardAt(col,yy);if(selected>=0&&col!=selected&&yy>=57&&moveWithSound(selected,index,col)){clearSelection();save();}else if(game.movable(col,i)){selected=col;index=i;hintDest=-1;}else{clearSelection();tell("앞면의 연속된 내림차순 카드만 옮길 수 있어요");}}
   invalidate();return true;
  }
  private void newGame(){game.newGame(new Random());elapsed=0;last=0;paused=false;clearSelection();save();invalidate();}
